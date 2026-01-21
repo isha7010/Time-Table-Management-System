@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weekly Timetable</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        th, td {
+            border: 1px solid #003366;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        th {
+            background-color: #003366;
+            color: white;
+        }
+        td small {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Weekly Timetable</h1>
+    <h3>Division {{ division }} | CSE Data Science</h3>
+</div>
+
+<div class="container">
+
+    <table>
+        <tr>
+            <th>Day / Time</th>
+            {% for slot in slots %}
+            <th>{{ slot }}</th>
+            {% endfor %}
+        </tr>
+
+        {% for day, row in timetable.items() %}
+        <tr>
+            <th>{{ day }}</th>
+            {% for slot in slots %}
+            <td>{{ row[slot]|safe }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="/admin-dashboard">← Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

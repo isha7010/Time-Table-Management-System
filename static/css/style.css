@@ -1,0 +1,187 @@
+* {
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    background-color: #f4f8fc;
+    color: #003366;
+}
+
+/* ================= HEADER ================= */
+.header {
+    background-color: white;
+    text-align: center;
+    padding: 35px 20px;
+    border-bottom: 4px solid #003366;
+}
+
+.header img {
+    height: 85px;
+    margin-bottom: 10px;
+}
+
+.header h1 {
+    margin: 6px 0;
+    font-size: 28px;
+}
+
+.header h3 {
+    margin: 4px 0;
+    font-size: 20px;
+    color: #0055aa;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #004080;
+}
+
+/* ================= CONTAINER ================= */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: white;
+    padding: 35px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+/* ================= LOGIN ================= */
+.login-container {
+    max-width: 420px;
+    text-align: center;
+}
+
+.login-title {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+.login-text {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 20px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    font-size: 15px;
+    border: 1px solid #b3d1ff;
+    border-radius: 6px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0055aa;
+}
+
+/* ================= TABLE ================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 25px;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #cfd9e6;
+    text-align: center;
+}
+
+th {
+    background-color: #003366;
+    color: white;
+}
+
+/* ================= LINKS ================= */
+.links {
+    margin-top: 18px;
+    font-size: 14px;
+}
+
+.links a {
+    color: #0055aa;
+    text-decoration: none;
+    margin: 0 8px;
+}
+
+/* ================= FOOTER ================= */
+.footer {
+    text-align: center;
+    padding: 15px;
+    font-size: 14px;
+    background: white;
+    border-top: 1px solid #ddd;
+}
+
+.timetable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+.timetable th {
+    background-color: #003366;
+    color: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.timetable td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.day {
+    font-weight: bold;
+    background-color: #f2f6fc;
+}
+
+.timetable small {
+    display: block;
+    color: #555;
+    font-size: 12px;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    font-size: 15px;
+    border: 1px solid #b3d1ff;
+    border-radius: 5px;
+    background-color: white;
+    color: #003366;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: #0055aa;
+}
+
