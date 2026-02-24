@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard | Time Table Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .header img {
+            height: 250px;
+            width: auto;
+            margin-bottom: 5px;
+            object-fit: contain;
+        }
+
+        .timetable-management {
+            margin-bottom: 30px;
+        }
+
+        .timetable-management p.section-desc {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .timetable-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tt-option-card {
+            flex: 1;
+            min-width: 220px;
+            border: 2px solid #003366;
+            border-radius: 10px;
+            padding: 24px 20px;
+            text-align: center;
+            background: #f4f8fc;
+        }
+
+        .tt-option-card h3 {
+            font-size: 17px;
+            color: #003366;
+            margin-bottom: 10px;
+        }
+
+        .tt-option-card p {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .tt-option-card button {
+            width: auto;
+            padding: 10px 28px;
+            font-size: 14px;
+            margin-top: 0;
+            border-radius: 6px;
+        }
+
+        .tt-option-card.manual {
+            border-color: #0055aa;
+            background: #eef5ff;
+        }
+
+        .tt-option-card.manual button {
+            background-color: #0055aa;
+        }
+
+        .tt-option-card.manual button:hover {
+            background-color: #003d80;
+        }
+
+        .admin-label {
+            display: inline-block;
+            background-color: #003366;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+    <img src="{{ url_for('static', filename='images/vit_full_image.png') }}" alt="VIT Logo">
+    <h1>Admin Dashboard</h1>
+    <h3>Time Table Management System</h3>
+</div>
+
+<div class="container">
+
+    <!-- ================= TIMETABLE MANAGEMENT (ADMIN ONLY) ================= -->
+    <span class="admin-label">&#9679; Admin Only</span>
+    <h2>Timetable Management</h2>
+    <div class="timetable-management">
+        <p class="section-desc">Choose how you want to create the timetable for the current term.</p>
+        <div class="timetable-options">
+
+            <!-- Auto Generate -->
+            <div class="tt-option-card generate">
+                <h3>&#9889; Auto-Generate Timetable</h3>
+                <p>Let the system automatically build an optimised weekly timetable based on faculty availability, subject hours, and shift constraints.</p>
+                <a href="/generate-options">
+                    <button type="button">Generate Timetable</button>
+                </a>
+            </div>
+
+            <!-- Manual Entry -->
+            <div class="tt-option-card manual">
+                <h3>&#9998; Create Timetable Manually</h3>
+                <p>Assign lectures slot-by-slot for each division. Full control over day, period, subject, and faculty for every entry.</p>
+                <a href="/manual-options">
+                    <button type="button">Create Manually</button>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- ================= VIEW TIMETABLE ================= -->
+    <h2>View Timetable</h2>
+    <div class="links">
+        <a href="/view-timetable/A">Division A</a> |
+        <a href="/view-timetable/B">Division B</a> |
+        <a href="/view-timetable/C">Division C</a>
+    </div>
+
+    <hr>
+
+    <!-- ================= ADD CLASS ================= -->
+    <h2>Add Class</h2>
+    <form method="post" action="/add-class">
+        <input type="number" name="semester" placeholder="Semester" required>
+        <input type="text" name="division" placeholder="Division (A / B / C)" required>
+        <select name="student_shift_id" required>
+            <option value="">-- Select Shift --</option>
+            <option value="1">Morning (8:00 &ndash; 14:00)</option>
+            <option value="2">Afternoon (12:00 &ndash; 18:00)</option>
+        </select>
+        <button type="submit">Add Class</button>
+    </form>
+
+    <!-- ================= EXISTING CLASSES ================= -->
+    <h2>Existing Classes</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Semester</th>
+            <th>Division</th>
+            <th>Shift</th>
+            <th>Action</th>
+        </tr>
+        {% for c in classes %}
+        <tr>
+            <td>{{ c.class_id }}</td>
+            <td>{{ c.semester }}</td>
+            <td>{{ c.division }}</td>
+            <td>{{ c.student_shift_id }}</td>
+            <td>
+                <a href="/delete-class/{{ c.class_id }}" style="color: #cc0000;">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <!-- ================= SUBJECTS ================= -->
+    <h2>Subjects</h2>
+    <table>
+        <tr>
+            <th>Subject</th>
+            <th>Semester</th>
+            <th>Hours / Week</th>
+        </tr>
+        {% for s in subjects %}
+        <tr>
+            <td>{{ s.subject_name }}</td>
+            <td>{{ s.semester }}</td>
+            <td>{{ s.hours_per_week }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+
+    <!-- ================= ADD SUBJECT ================= -->
+    <h2>Add Subject</h2>
+    <form method="post" action="/add-subject">
+        <input type="text" name="subject_name" placeholder="Subject Name" required>
+        <input type="number" name="semester" placeholder="Semester" required>
+        <input type="number" name="hours_per_week" placeholder="Hours per Week" required>
+        <button type="submit">Add Subject</button>
+    </form>
+
+    <hr>
+
+    <!-- ================= ADD FACULTY ================= -->
+    <h2>Add Faculty</h2>
+    <form method="post" action="/add-faculty">
+        <input type="text" name="faculty_name" placeholder="Faculty Name" required>
+        <input type="number" name="max_hours_per_day" placeholder="Max Hours Per Day" required>
+        <input type="number" name="max_hours_per_week" placeholder="Max Hours Per Week" required>
+        <button type="submit">Add Faculty</button>
+    </form>
+
+    <hr>
+
+    <!-- ================= ASSIGN FACULTY TO SUBJECT ================= -->
+    <h2>Assign Faculty to Subject</h2>
+    <form method="post" action="/assign-faculty">
+
+        <label>Select Class</label>
+        <select name="class_id" required>
+            <option value="">-- Select Class --</option>
+            {% for c in classes %}
+            <option value="{{ c.class_id }}">
+                Sem {{ c.semester }} - Div {{ c.division }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <label>Select Subject</label>
+        <select name="subject_id" required>
+            <option value="">-- Select Subject --</option>
+            {% for s in subjects %}
+            <option value="{{ s.subject_id }}">
+                {{ s.subject_name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <label>Select Faculty</label>
+        <select name="faculty_id" required>
+            <option value="">-- Select Faculty --</option>
+            {% for f in faculties %}
+            <option value="{{ f.faculty_id }}">
+                {{ f.faculty_name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Assign Faculty</button>
+    </form>
+
+</div>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+    &copy; 2025&ndash;26 Vishwakarma Institute of Technology, Pune
+</div>
+
+</body>
+</html>

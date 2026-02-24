@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="header">
+    <img src="{{ url_for('static', filename='images/vit_logo.png') }}">
+    <h1>Student Dashboard</h1>
+    <h3>Class & Shift Details</h3>
+</div>
+
+<div class="container">
+
+    <h2>Your Class Information</h2>
+
+    <table>
+        <tr>
+            <th>Semester</th>
+            <th>Division</th>
+            <th>Shift</th>
+            <th>Timing</th>
+        </tr>
+
+        {% for c in classes %}
+        <tr>
+            <td>{{ c.semester }}</td>
+            <td>{{ c.division }}</td>
+            <td>{{ c.shift_name }}</td>
+            <td>{{ c.start_time }} – {{ c.end_time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+<div class="footer">
+    © 2024–25 Vishwakarma Institute of Technology, Pune
+</div>
+
+</body>
+</html>

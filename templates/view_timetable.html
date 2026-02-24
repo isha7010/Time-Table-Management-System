@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weekly Timetable</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .header img {
+            height: 110px;
+            width: auto;
+            margin-bottom: 10px;
+            object-fit: contain;
+        }
+
+        .timetable-wrapper {
+            overflow-x: auto;
+        }
+
+        .timetable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .timetable th,
+        .timetable td {
+            border: 1px solid #003366;
+            padding: 12px 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .timetable th {
+            background-color: #003366;
+            color: white;
+            font-weight: 600;
+        }
+
+        .timetable td {
+            background-color: #ffffff;
+            color: #003366;
+        }
+
+        .timetable td small {
+            display: block;
+            color: #0055aa;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .timetable tr:nth-child(even) td {
+            background-color: #f4f8fc;
+        }
+
+        .timetable td.empty {
+            color: #bbb;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        .day-label {
+            background-color: #e8f0fb !important;
+            font-weight: bold;
+            color: #003366 !important;
+            min-width: 90px;
+        }
+
+        /* Info bar above table */
+        .info-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .info-bar .meta {
+            font-size: 14px;
+            color: #004080;
+        }
+
+        .info-bar .meta span {
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-print {
+            padding: 9px 22px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-print:hover {
+            background-color: #0055aa;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #0055aa;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 9px 22px;
+            border: 1px solid #0055aa;
+            border-radius: 6px;
+        }
+
+        .back-link:hover {
+            background-color: #eef5ff;
+        }
+
+        /* Division selector tabs */
+        .div-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .div-tabs a {
+            padding: 8px 22px;
+            border: 1px solid #003366;
+            border-radius: 6px;
+            color: #003366;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .div-tabs a.active,
+        .div-tabs a:hover {
+            background-color: #003366;
+            color: white;
+        }
+
+        @media print {
+            .btn-group, .div-tabs, .back-link { display: none; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="{{ url_for('static', filename='images/vit_image.png') }}" alt="VIT Logo">
+    <h1>Weekly Timetable</h1>
+    <h3>Division {{ division }} &nbsp;|&nbsp; Semester {{ semester }}</h3>
+</div>
+
+<div class="container">
+
+    <!-- Division Switcher -->
+    <div class="div-tabs">
+        <a href="/view-timetable/A" class="{{ 'active' if division == 'A' else '' }}">Division A</a>
+        <a href="/view-timetable/B" class="{{ 'active' if division == 'B' else '' }}">Division B</a>
+        <a href="/view-timetable/C" class="{{ 'active' if division == 'C' else '' }}">Division C</a>
+    </div>
+
+    <!-- Info + Actions -->
+    <div class="info-bar">
+        <div class="meta">
+            Showing timetable for &nbsp;<span>Division {{ division }}</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn-print" onclick="window.print()">&#128438; Print / Save PDF</button>
+            <a class="back-link" href="/admin-dashboard">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Timetable -->
+    <div class="timetable-wrapper">
+        <table class="timetable">
+            <tr>
+                <th>Day / Time</th>
+                {% for slot in slots %}
+                <th>{{ slot }}</th>
+                {% endfor %}
+            </tr>
+
+            {% for day, row in timetable.items() %}
+            <tr>
+                <td class="day-label">{{ day }}</td>
+                {% for slot in slots %}
+                    {% if row[slot] and row[slot] != '-' %}
+                    <td>{{ row[slot]|safe }}</td>
+                    {% else %}
+                    <td class="empty">—</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

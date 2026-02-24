@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Timetable Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .header img {
+            height: 110px;
+            width: auto;
+            margin-bottom: 10px;
+            object-fit: contain;
+        }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .top-bar select {
+            width: auto;
+            margin: 0;
+            padding: 9px 14px;
+            font-size: 14px;
+        }
+        .top-bar .btn {
+            padding: 9px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+        .btn-primary   { background: #003366; color: #fff; }
+        .btn-primary:hover { background: #0055aa; }
+        .btn-danger    { background: #cc0000; color: #fff; }
+        .btn-danger:hover  { background: #aa0000; }
+        .btn-success   { background: #1a7a4a; color: #fff; }
+        .btn-success:hover { background: #155e38; }
+        .btn-outline   { background: #fff; color: #003366; border: 1px solid #003366; }
+        .btn-outline:hover { background: #eef4ff; }
+
+        /* ── LEGEND ── */
+        .legend {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            font-size: 13px;
+            align-items: center;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-box  { width: 16px; height: 16px; border-radius: 3px; }
+        .leg-empty   { background: #f4f8fc; border: 1px solid #cfd9e6; }
+        .leg-filled  { background: #dbeafe; border: 1px solid #3b82f6; }
+        .leg-clash   { background: #fee2e2; border: 1px solid #ef4444; }
+        .leg-new     { background: #dcfce7; border: 1px solid #22c55e; }
+
+        /* ── TIMETABLE GRID ── */
+        .tt-wrapper { overflow-x: auto; margin-bottom: 30px; }
+
+        table.tt-grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 700px;
+        }
+        table.tt-grid th {
+            background: #003366;
+            color: #fff;
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #002244;
+            white-space: nowrap;
+        }
+        table.tt-grid td {
+            border: 1px solid #cfd9e6;
+            padding: 0;
+            vertical-align: top;
+            min-width: 110px;
+            height: 72px;
+        }
+        table.tt-grid td.day-label {
+            background: #e8f0fb;
+            font-weight: bold;
+            color: #003366;
+            text-align: center;
+            vertical-align: middle;
+            padding: 8px;
+            width: 90px;
+            min-width: 90px;
+        }
+
+        /* ── CELL STATES ── */
+        .cell {
+            width: 100%;
+            height: 100%;
+            min-height: 72px;
+            padding: 6px 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .cell.empty {
+            background: #f4f8fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aac;
+            font-size: 20px;
+        }
+        .cell.empty:hover { background: #dbeafe; color: #003366; }
+
+        .cell.filled {
+            background: #dbeafe;
+        }
+        .cell.filled:hover { background: #bfdbfe; }
+
+        .cell.clash {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+        }
+        .cell.clash:hover { background: #fecaca; }
+
+        .cell.new-entry {
+            background: #dcfce7;
+        }
+        .cell.new-entry:hover { background: #bbf7d0; }
+
+        .cell-subject {
+            font-weight: 600;
+            color: #003366;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        .cell-faculty {
+            color: #0055aa;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        .cell-clash-msg {
+            color: #dc2626;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+        .cell-actions {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            display: none;
+            gap: 3px;
+        }
+        .cell:hover .cell-actions { display: flex; }
+        .cell-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .cell-btn.edit { background: #003366; color: #fff; }
+        .cell-btn.del  { background: #cc0000; color: #fff; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px 32px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            position: relative;
+        }
+        .modal h3 {
+            color: #003366;
+            font-size: 17px;
+            margin-bottom: 4px;
+        }
+        .modal .slot-info {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        .modal label {
+            font-size: 12px;
+            color: #003366;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .modal select {
+            width: 100%;
+            margin: 0 0 14px 0;
+            padding: 9px 12px;
+            font-size: 14px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .modal-actions .btn { flex: 1; padding: 10px; text-align: center; }
+        .modal-close {
+            position: absolute;
+            top: 12px; right: 14px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+        }
+        .clash-warning {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #dc2626;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .clash-warning.visible { display: block; }
+
+        /* ── COPY SECTION ── */
+        .copy-section {
+            background: #f4f8fc;
+            border: 1px solid #cfd9e6;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin-top: 10px;
+        }
+        .copy-section h3 {
+            color: #003366;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .copy-section p {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 14px;
+        }
+        .copy-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .copy-row select { width: auto; margin: 0; font-size: 14px; padding: 8px 12px; }
+        .copy-row .btn   { margin: 0; }
+
+        .back-link {
+            display: inline-block;
+            color: #0055aa;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* ── FLASH MESSAGES ── */
+        .flash {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+        .flash.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .flash.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <img src="{{ url_for('static', filename='images/vit_image.jpg') }}" alt="VIT Logo">
+    <h1>Manual Timetable Editor</h1>
+    <h3>Time Table Management System</h3>
+</div>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- ── TOP BAR: Class Selector ── -->
+    <div class="top-bar">
+        <strong style="color:#003366;">Select Class:</strong>
+        {% for c in classes %}
+        <a href="/manual-options?class_id={{ c.class_id }}"
+           class="btn {{ 'btn-primary' if c.class_id == selected_class.class_id else 'btn-outline' }}">
+            Sem {{ c.semester }} – Div {{ c.division }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- ── LEGEND ── -->
+    <div class="legend">
+        <strong style="color:#003366;">Legend:</strong>
+        <div class="legend-item"><div class="legend-box leg-empty"></div> Empty slot</div>
+        <div class="legend-item"><div class="legend-box leg-filled"></div> Assigned</div>
+        <div class="legend-item"><div class="legend-box leg-clash"></div> Clash detected</div>
+        <div class="legend-item"><div class="legend-box leg-new"></div> Newly added</div>
+    </div>
+
+    <!-- ── TIMETABLE GRID ── -->
+    <div class="tt-wrapper">
+        <table class="tt-grid">
+            <tr>
+                <th>Day \ Time</th>
+                {% for slot in slots %}
+                <th>{{ slot.slot_name }}</th>
+                {% endfor %}
+            </tr>
+
+            {% set days = ['Monday','Tuesday','Wednesday','Thursday','Friday'] %}
+            {% for day in days %}
+            <tr>
+                <td class="day-label">{{ day }}</td>
+                {% for slot in slots %}
+                    {% set entry = timetable[day][slot.slot_id] %}
+                    {% set clash = clashes[day][slot.slot_id] %}
+                    <td>
+                        {% if entry %}
+                            <div class="cell {{ 'clash' if clash else 'filled' }}"
+                                 onclick="openModal('{{ day }}', {{ slot.slot_id }}, '{{ slot.slot_name }}', {{ entry.subject_id }}, {{ entry.faculty_id }}, {{ entry.timetable_id }})">
+                                <div class="cell-subject">{{ entry.subject_name }}</div>
+                                <div class="cell-faculty">{{ entry.faculty_name }}</div>
+                                {% if clash %}
+                                <div class="cell-clash-msg">⚠ {{ clash }}</div>
+                                {% endif %}
+                                <div class="cell-actions">
+                                    <button class="cell-btn edit" title="Edit">✎</button>
+                                    <button class="cell-btn del" title="Delete"
+                                        onclick="event.stopPropagation(); deleteEntry({{ entry.timetable_id }})">✕</button>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="cell empty"
+                                 onclick="openModal('{{ day }}', {{ slot.slot_id }}, '{{ slot.slot_name }}', null, null, null)">
+                                +
+                            </div>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <!-- ── COPY TIMETABLE SECTION ── -->
+    <div class="copy-section">
+        <h3>📋 Copy Timetable to Another Class</h3>
+        <p>Copy the entire timetable of <strong>Sem {{ selected_class.semester }} – Div {{ selected_class.division }}</strong> to another class. This will overwrite the target class's existing timetable.</p>
+        <form method="post" action="/copy-timetable"
+              onsubmit="return confirm('This will overwrite the target class timetable. Continue?')">
+            <input type="hidden" name="source_class_id" value="{{ selected_class.class_id }}">
+            <div class="copy-row">
+                <label style="margin:0; text-transform:none; font-size:14px; font-weight:normal;">Copy to:</label>
+                <select name="target_class_id" required>
+                    <option value="">-- Select Target Class --</option>
+                    {% for c in classes %}
+                        {% if c.class_id != selected_class.class_id %}
+                        <option value="{{ c.class_id }}">Sem {{ c.semester }} – Div {{ c.division }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-success">Copy Timetable</button>
+            </div>
+        </form>
+    </div>
+
+    <a class="back-link" href="/admin-dashboard">← Back to Dashboard</a>
+</div>
+
+<!-- ── ASSIGN / EDIT MODAL ── -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <h3 id="modalTitle">Assign Lecture</h3>
+        <div class="slot-info" id="modalSlotInfo"></div>
+
+        <div class="clash-warning" id="clashWarning"></div>
+
+        <form method="post" action="/save-manual-timetable" id="assignForm">
+            <input type="hidden" name="class_id" value="{{ selected_class.class_id }}">
+            <input type="hidden" name="day"       id="modalDay">
+            <input type="hidden" name="slot_id"   id="modalSlotId">
+            <input type="hidden" name="timetable_id" id="modalTimetableId">
+
+            <label>Subject</label>
+            <select name="subject_id" id="modalSubject" required onchange="checkClash()">
+                <option value="">-- Select Subject --</option>
+                {% for s in subjects %}
+                <option value="{{ s.subject_id }}">{{ s.subject_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Faculty</label>
+            <select name="faculty_id" id="modalFaculty" required onchange="checkClash()">
+                <option value="">-- Select Faculty --</option>
+                {% for f in faculties %}
+                <option value="{{ f.faculty_id }}" data-max="{{ f.max_hours_per_day }}">
+                    {{ f.faculty_name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete form (hidden, submitted via JS) -->
+<form method="post" action="/delete-timetable-entry" id="deleteForm" style="display:none;">
+    <input type="hidden" name="timetable_id" id="deleteTimetableId">
+    <input type="hidden" name="class_id"     value="{{ selected_class.class_id }}">
+</form>
+
+<script>
+// ── Clash data from server ──
+// busy_slots[faculty_id] = list of "day|slot_id" strings already occupied globally
+const busySlots  = {{ busy_slots_json | safe }};
+// faculty_day_count[faculty_id][day] = count of lectures already assigned
+const facDayCount = {{ fac_day_count_json | safe }};
+const facMaxDay   = {{ fac_max_day_json | safe }};
+
+let currentDay    = null;
+let currentSlotId = null;
+
+function openModal(day, slotId, slotName, subjectId, facultyId, timetableId) {
+    currentDay    = day;
+    currentSlotId = slotId;
+
+    document.getElementById('modalDay').value         = day;
+    document.getElementById('modalSlotId').value      = slotId;
+    document.getElementById('modalTimetableId').value = timetableId || '';
+    document.getElementById('modalTitle').textContent = timetableId ? 'Edit Lecture' : 'Assign Lecture';
+    document.getElementById('modalSlotInfo').textContent = `${day}  ·  ${slotName}`;
+
+    // Pre-select existing values
+    if (subjectId) document.getElementById('modalSubject').value = subjectId;
+    else           document.getElementById('modalSubject').value = '';
+    if (facultyId) document.getElementById('modalFaculty').value = facultyId;
+    else           document.getElementById('modalFaculty').value = '';
+
+    document.getElementById('clashWarning').classList.remove('visible');
+    document.getElementById('clashWarning').textContent = '';
+    document.getElementById('modalOverlay').classList.add('open');
+
+    checkClash();
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function checkClash() {
+    const facultyId = document.getElementById('modalFaculty').value;
+    const warning   = document.getElementById('clashWarning');
+
+    if (!facultyId || !currentDay || !currentSlotId) {
+        warning.classList.remove('visible');
+        return;
+    }
+
+    const key       = `${currentDay}|${currentSlotId}`;
+    const busy      = busySlots[facultyId] || [];
+    const dayCount  = (facDayCount[facultyId] && facDayCount[facultyId][currentDay]) || 0;
+    const maxDay    = facMaxDay[facultyId] || 3;
+
+    let msg = '';
+    if (busy.includes(key)) {
+        msg = `⚠ This faculty is already teaching another class at this slot on ${currentDay}.`;
+    } else if (dayCount >= maxDay) {
+        msg = `⚠ This faculty already has ${dayCount} lecture(s) on ${currentDay} (max: ${maxDay}).`;
+    }
+
+    if (msg) {
+        warning.textContent = msg;
+        warning.classList.add('visible');
+    } else {
+        warning.classList.remove('visible');
+    }
+}
+
+function deleteEntry(timetableId) {
+    if (!confirm('Delete this lecture from the timetable?')) return;
+    document.getElementById('deleteTimetableId').value = timetableId;
+    document.getElementById('deleteForm').submit();
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+
+</body>
+</html>

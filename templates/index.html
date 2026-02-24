@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VIT Time Table Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="{{ url_for('static', filename='images/vit_logo.png') }}">
+    <h1>Vishwakarma Institute of Technology<br>
+        <small>CSE – Data Science | Time Table Management System</small>
+    </h1>
+</div>
+
+<div class="container">
+
+    <!-- GREETING -->
+    <div class="greeting">
+        👋 Welcome to the **CSE Data Science Time Table Portal**.  
+        Please login to continue.
+    </div>
+
+    <!-- LOGIN SECTION -->
+    <div class="login-box">
+
+        <div class="login-card">
+            <h2>🎓 Student Login</h2>
+            <form method="post" action="/student-login">
+                <input type="text" placeholder="Student ID" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login as Student</button>
+            </form>
+        </div>
+
+        <div class="login-card">
+            <h2>👨‍🏫 Faculty Login</h2>
+            <form method="post" action="/faculty-login">
+                <input type="text" placeholder="Faculty ID" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login as Faculty</button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- CLASS MANAGEMENT -->
+    <h2>📘 Class Management</h2>
+
+    <form method="post" action="/add">
+        <label>Semester</label>
+        <input type="number" name="semester" required>
+
+        <label>Division</label>
+        <input type="text" name="division" required>
+
+        <label>Student Shift</label>
+        <select name="student_shift_id">
+            <option value="1">Morning (8–2)</option>
+            <option value="2">Afternoon (12–6)</option>
+        </select>
+
+        <button type="submit">Add Class</button>
+    </form>
+
+    <h2>📋 Existing Classes</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Semester</th>
+            <th>Division</th>
+            <th>Shift</th>
+            <th>Action</th>
+        </tr>
+        {% for c in classes %}
+        <tr>
+            <td>{{ c.class_id }}</td>
+            <td>{{ c.semester }}</td>
+            <td>{{ c.division }}</td>
+            <td>{{ c.student_shift_id }}</td>
+            <td>
+                <a href="/delete/{{ c.class_id }}">🗑 Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+</body>
+</html>

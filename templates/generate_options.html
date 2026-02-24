@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Timetable</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="header">
+    <h1>Generate Timetable</h1>
+    <h3>Select Class and Generate</h3>
+</div>
+
+<div class="container">
+
+    <form method="post" action="/generate-timetable">
+
+        <label>Select Class</label>
+        <select name="class_id" required>
+            <option value="">-- Select Class --</option>
+            {% for c in classes %}
+            <option value="{{ c.class_id }}">
+                Sem {{ c.semester }} - Div {{ c.division }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Generate Weekly Timetable</button>
+
+    </form>
+
+    <br>
+    <a href="/admin-dashboard">⬅ Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>
